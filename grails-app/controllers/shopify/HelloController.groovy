@@ -2,16 +2,9 @@ package shopify
 
 class HelloController {
 
+    def apiService
+
     def index() {
-        ShopifyService.getOrders()
-        render "Hello World!"
-    }
-
-    def fetch() {
-        ShopifyService.getOrders()
-    }
-
-    def delete() {
-        ShopifyService.deleteOrders();
+        render "Hello World!<form><input type=\"submit\" formaction=\"/orders\" value=\"fetch\"></form>"
     }
 }
