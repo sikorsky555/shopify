@@ -6,6 +6,6 @@ class OrdersController {
 
     def index() {
         apiService.getOrders()
-        redirect(controller: 'hello', action:'index')
+        redirect(controller: 'home')
     }
 }
