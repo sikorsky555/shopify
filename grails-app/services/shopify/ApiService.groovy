@@ -2,6 +2,7 @@ package shopify
 
 import grails.gorm.transactions.Transactional
 import groovy.json.JsonSlurper
+import java.util.Map;
 
 @Transactional
 class ApiService {
@@ -16,15 +17,15 @@ class ApiService {
         URLConnection urlConnection = url.openConnection()
         urlConnection.setRequestProperty("Authorization", "Basic " + encodedCredentials)
         BufferedReader input = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))
-        StringBuilder sb = new StringBuilder()
-        String inputLine
-        while((inputLine = input.readLine()) != null) {
-            sb.append(inputLine)
+        JsonSlurper slurper = new JsonSlurper()
+        def parsedData = slurper.parse(input)
+        for (def order: parsedData.orders) {
+            def productOrder = new ProductOrder(id: order.id, email: order.email)
+            for (def lineItem: order.line_items) {
+            }
+            productOrder.save()
         }
-        System.out.println("contents" + sb.toString())
-        input.close()
 
-        
 
     }
 }
