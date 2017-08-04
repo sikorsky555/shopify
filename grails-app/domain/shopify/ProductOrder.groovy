@@ -1,15 +1,17 @@
 package shopify
 
 class ProductOrder {
-    int id
+    long id
     String email
-    Customer customer
-    List lineItems
     String total_price
 
-    static hasMany = [lineItems: LineItem]
+    static belongsTo = [customer: Customer]
+    static hasMany = [line_items: LineItem]
 
     static constraints = {
         id generator: 'assigned'
+        email nullable: true
+        customer nullable: true
     }
+
 }

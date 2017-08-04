@@ -2,13 +2,70 @@ package shopify
 
 import grails.gorm.transactions.Transactional
 import groovy.json.JsonSlurper
-import java.util.Map;
 
 @Transactional
 class ApiService {
 
+    def getAllData() {
+        getProducts()
+        getCustomers()
+        getOrders()
+    }
+
     def getOrders() {
-        String shopifyUrl = "https://smuin.myshopify.com/admin/orders.json"
+        def parsedData = getShopifyData("orders")
+        for (def order: parsedData.orders) {
+            def productOrder = new ProductOrder(id: order.id, email: order.email, total_price: order.total_price)
+            productOrder.id = order.id
+            for (def dbLineItem: order.line_items) {
+                def lineItem = new LineItem(id: dbLineItem.id, name: dbLineItem.name, price: dbLineItem.price, vendor: dbLineItem.vendor)
+                lineItem.id = dbLineItem.id
+                lineItem.product = Product.find({id: dbLineItem.product_id})
+                if (!LineItem.exists(dbLineItem.id)) {
+                    lineItem.save(failOnError: true, flush: true)
+                }
+                productOrder.addToLine_items(lineItem)
+            }
+            if (order.customer) {
+                def customer = new Customer(id: order.customer.id, first_name: order.customer.first_name, last_name: order.customer.last_name)
+                customer.id = order.customer.id
+                if (!Customer.exists(customer.id)) {
+                    customer.save(failOnError: true, flush: true)
+                }
+                productOrder.customer = customer
+            }
+
+            if (!ProductOrder.exists(productOrder.id)) {
+                productOrder.save(failOnError: true, flush: true)
+            }
+        }
+    }
+
+    def getCustomers() {
+        def parsedData = getShopifyData("customers")
+        for (def cust: parsedData.customers) {
+            def customer = new Customer(id: cust.id, first_name: cust.first_name, last_name: cust.last_name)
+            customer.id = cust.id
+            if (!Customer.exists(customer.id)) {
+                customer.save(failOnError: true, flush: true)
+            }
+        }
+    }
+
+    def getProducts() {
+        def parsedData = getShopifyData("products")
+        for (def prod: parsedData.products) {
+            def product = new Product(id: prod.id, title: prod.title)
+            product.id = prod.id
+            if (!Product.exists(product.id)) {
+                product.save(failOnError: true, flush: true)
+            }
+        }
+
+    }
+
+    def getShopifyData(data) {
+        String shopifyUrl = "https://smuin.myshopify.com/admin/" + data + ".json"
         String key = "80c69701accbe27e0e7a784e32ce35ce"
         String password = "06a25574be4132ad2c33eb1d8103784a"
         String credentials = key + ":" + password
@@ -18,14 +75,6 @@ class ApiService {
         urlConnection.setRequestProperty("Authorization", "Basic " + encodedCredentials)
         BufferedReader input = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()))
         JsonSlurper slurper = new JsonSlurper()
-        def parsedData = slurper.parse(input)
-        for (def order: parsedData.orders) {
-            def productOrder = new ProductOrder(id: order.id, email: order.email)
-            for (def lineItem: order.line_items) {
-            }
-            productOrder.save()
-        }
-
-
+        return slurper.parse(input)
     }
 }

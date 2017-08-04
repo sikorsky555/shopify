@@ -1,11 +1,14 @@
 package shopify
 
 class LineItem {
+    long id
     String name
-    Product product
     String price
     String vendor
 
+    static belongsTo = [product: Product]
+
     static constraints = {
+        id generator: 'assigned'
     }
 }
