@@ -5,6 +5,7 @@ class LineItem {
     String name
     String price
     String vendor
+    int quantity
 
     static belongsTo = [product: Product]
 

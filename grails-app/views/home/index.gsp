@@ -19,8 +19,15 @@
     <g:each in="${orderList}" var="order">
         <tr>
             <td>${order.total_price}</td>
-            <td><g:if test="${order.customer}">${order.customer.first_name}</g:if></td>
-            <td><g:each in="${order.line_items}" var="lineItem"><span>${lineItem.product.title}</span></g:each></td>
+            <td><g:if test="${order.customer}">${order.customer.first_name} ${order.customer.last_name}</g:if></td>
+            <td>
+                <g:each in="${order.line_items}" var="lineItem">
+                    <img src="${lineItem.product.image_url}"
+                         alt="${lineItem.product.title}"
+                         title="${lineItem.product.title} x ${lineItem.quantity}"
+                         style="max-height: 200px;"/>
+                </g:each>
+            </td>
         </tr>
     </g:each>
     </table>

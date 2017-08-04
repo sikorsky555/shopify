@@ -15,19 +15,34 @@ class ApiService {
     def getOrders() {
         def parsedData = getShopifyData("orders")
         for (def order: parsedData.orders) {
-            def productOrder = new ProductOrder(id: order.id, email: order.email, total_price: order.total_price)
+            def productOrder = new ProductOrder(
+                    id: order.id,
+                    email: order.email,
+                    total_price: order.total_price
+            )
             productOrder.id = order.id
             for (def dbLineItem: order.line_items) {
-                def lineItem = new LineItem(id: dbLineItem.id, name: dbLineItem.name, price: dbLineItem.price, vendor: dbLineItem.vendor)
+                def lineItem = new LineItem(
+                        id: dbLineItem.id,
+                        name: dbLineItem.name,
+                        price: dbLineItem.price,
+                        vendor: dbLineItem.vendor,
+                        quantity: dbLineItem.quantity
+                )
                 lineItem.id = dbLineItem.id
-                lineItem.product = Product.find({id: dbLineItem.product_id})
+                lineItem.product = Product.findById(dbLineItem.product_id)
                 if (!LineItem.exists(dbLineItem.id)) {
                     lineItem.save(failOnError: true, flush: true)
                 }
                 productOrder.addToLine_items(lineItem)
             }
             if (order.customer) {
-                def customer = new Customer(id: order.customer.id, first_name: order.customer.first_name, last_name: order.customer.last_name)
+                def customer = new Customer(
+                        id: order.customer.id,
+                        first_name: order.customer.first_name,
+                        last_name: order.customer.last_name,
+                        email: order.customer.email
+                )
                 customer.id = order.customer.id
                 if (!Customer.exists(customer.id)) {
                     customer.save(failOnError: true, flush: true)
@@ -44,7 +59,11 @@ class ApiService {
     def getCustomers() {
         def parsedData = getShopifyData("customers")
         for (def cust: parsedData.customers) {
-            def customer = new Customer(id: cust.id, first_name: cust.first_name, last_name: cust.last_name)
+            def customer = new Customer(
+                    id: cust.id,
+                    first_name: cust.first_name,
+                    last_name: cust.last_name
+            )
             customer.id = cust.id
             if (!Customer.exists(customer.id)) {
                 customer.save(failOnError: true, flush: true)
@@ -55,7 +74,12 @@ class ApiService {
     def getProducts() {
         def parsedData = getShopifyData("products")
         for (def prod: parsedData.products) {
-            def product = new Product(id: prod.id, title: prod.title)
+            def image_url = prod.image ? prod.image.src : ''
+            def product = new Product(
+                    id: prod.id,
+                    title: prod.title,
+                    image_url: image_url
+            )
             product.id = prod.id
             if (!Product.exists(product.id)) {
                 product.save(failOnError: true, flush: true)
